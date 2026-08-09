@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { listConfigs, remoteEnabled, saveConfig, type StoredConfig } from '@/lib/runStore'
+import { deleteConfig, listConfigs, remoteEnabled, saveConfig, type StoredConfig } from '@/lib/runStore'
 import { decodeConfig, shareUrl } from '@/lib/shareConfig'
 import { useWizard } from '@/lib/store/wizard'
 
@@ -19,6 +19,7 @@ export function ConfigBar() {
   const [name, setName] = useState('')
   const [showSave, setShowSave] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [selected, setSelected] = useState('')
   const [loadedFromUrl, setLoadedFromUrl] = useState(false)
 
   useEffect(() => {
@@ -60,21 +61,36 @@ export function ConfigBar() {
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         {saved.length > 0 && (
-          <select
-            className="input w-auto max-w-xs"
-            value=""
-            onChange={(e) => {
-              const found = saved.find((c) => c.id === e.target.value)
-              if (found) patch(found.payload)
-            }}
-          >
-            <option value="">Load a saved setup…</option>
-            {saved.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <>
+            <select
+              className="input w-auto max-w-xs"
+              value={selected}
+              onChange={(e) => {
+                setSelected(e.target.value)
+                const found = saved.find((c) => c.id === e.target.value)
+                if (found) patch(found.payload)
+              }}
+            >
+              <option value="">Load a saved setup…</option>
+              {saved.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            {selected && (
+              <button
+                className="btn text-bad"
+                onClick={async () => {
+                  await deleteConfig(selected)
+                  setSelected('')
+                  setSaved(await listConfigs())
+                }}
+              >
+                Delete
+              </button>
+            )}
+          </>
         )}
         <button className="btn" onClick={() => setShowSave((v) => !v)}>
           Save setup

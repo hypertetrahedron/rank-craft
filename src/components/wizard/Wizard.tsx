@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import { Boundary } from '@/components/Boundary'
+import { MigrationBanner } from '@/components/MigrationBanner'
 import { DEFAULT_BUILTIN, loadBuiltins, parseParams } from '@/lib/builtins'
 import { FUNCTION_KINDS } from '@/lib/simConfig'
 import { useWizard } from '@/lib/store/wizard'
@@ -58,6 +59,7 @@ export function Wizard() {
   return (
     <div className="space-y-6">
       <Stepper />
+      <MigrationBanner />
       <ConfigBar />
       {hydrated ? (
         <Boundary label={`Step ${step}`} key={step}>

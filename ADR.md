@@ -377,3 +377,40 @@ wide so the familiar 1400–2200 range covers the field, then derives
 as a property of their event is quoting the axis we picked. What the data does
 fix — and what the page shows — is the par score, the residual spread, R², the
 draw rate and the share of games at the scoreboard ceiling.
+
+---
+
+## ADR-015 — Data migration runs in the browser, not on the server
+
+**Status:** accepted · 2026-08-09
+
+**Context.** A Neon database was attached to an application that had been in use
+without one, and the existing work needed to end up in it. The conventional
+shape for that is a migration script: connect, read the old store, write the
+new one.
+
+**Decision.** There is no server-side migration. `src/lib/migrateLocal.ts` runs
+in the browser, and a banner offers to upload when it finds local work and a
+reachable database.
+
+**Why an ADR.** The absence of `scripts/migrate.mjs` looks like an omission, and
+someone will eventually write one. There is nothing for it to read. The database
+started empty and every saved function, setup and completed run lives in the
+browser that produced it — functions and setups in localStorage, runs in
+IndexedDB because they are far too large for it (ADR-006). An operator with the
+connection string has no access to any of it; only the browser that owns the
+data can send it. This is a direct consequence of the anonymous-owner model:
+there is no account to migrate *from*.
+
+Two rules fall out of the same reasoning:
+
+- **Local copies are kept, not deleted.** They remain the offline path, and
+  destroying a user's only copy to tidy up is a bad trade for the disk space.
+- **Runs are matched on label and seed before sending.** Functions and setups
+  upsert by id so re-sending is harmless, but runs always insert — without the
+  check, opening the page twice would duplicate every result. `planMigration` is
+  pure so that rule is tested without a browser or a database.
+
+**Consequences.** A user who never reopens the app never migrates, which is
+acceptable because nothing is lost — the local copy still works. `db-check` and
+`db-purge-owner` are the operator's tools; neither can reach into a browser.

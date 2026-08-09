@@ -82,6 +82,9 @@ Last updated: 2026-08-09 (second pass: every not-started item implemented except
 | Configs API | **done** | Routes complete and driven by the config bar. |
 | IndexedDB run cache | **done** | Runs survive a page reload with no database. See [ADR-006](ADR.md). |
 | Anonymous owner id | **done** | Swapping for real auth is a column rename. |
+| Neon schema provisioned and verified | **done** | `npm run db:setup` then `npm run db:check`, which verifies the live columns against what the code reads rather than trusting that the DDL ran. |
+| Migrate existing work into the database | **done** | Client-side by necessity — see [ADR-015](ADR.md). `planMigration` is pure and tested; the banner appears only when there is something to move and somewhere to move it. |
+| Operator tooling (`db:check`, `db:purge-owner`) | **done** | Schema drift check and a scoped purge that refuses to run without an explicit owner id. |
 | Real authentication | **deferred** | Deliberately postponed; a login wall in front of a tool that is fun to just open. |
 | Function versioning surfaced in the UI | **done** | Version shown in the library; the localStorage path bumps it too, so behaviour matches with and without a database. |
 
@@ -95,7 +98,7 @@ Last updated: 2026-08-09 (second pass: every not-started item implemented except
 | README / CLAUDE.md | **done** | |
 | `npm run verify` | **done** | Types, lint, unit tests and the engine suite in one command. |
 | Roadmap and ADR documents | **done** | This file and `ADR.md`. |
-| `vercel.json` and deployment | **not started** | Never created. The app builds and would deploy on defaults, but this is untested. |
+| `vercel.json` and deployment | **done** | Region pinned to `iad1` beside the Neon region, immutable caching for the vendored wheels, revalidation for the engine files, and `no-store` on the owner-scoped API. |
 | Vendoring the Pyodide runtime into `public/` | **deferred** | Currently CDN, overridable via `NEXT_PUBLIC_PYODIDE_URL`. Only worth doing if CDN availability becomes a problem. |
 | COOP/COEP headers + SharedArrayBuffer | **deferred** | Would allow true mid-run interruption instead of terminating and respawning workers. Not worth the header constraints yet. |
 | Automated browser tests in the repo | **done** | `e2e/smoke.spec.ts`, 16 checks including a real simulation, the reload-persistence regression, and a phone-width check that forces a wide font so it does not depend on the host's system-ui. |
@@ -107,6 +110,7 @@ Found by review on 2026-08-09. None are marked `done` until fixed **and** covere
 
 | Defect | State | Notes |
 |---|---|---|
+| Saving a setup silently discarded it with no database | **done** | `saveConfig` had no localStorage fallback, unlike saved functions: the input cleared and the panel closed either way, so it looked like it had worked. Found while auditing what there was to migrate. |
 | Header nav overflowed the viewport on a phone | **done** | Introduced by growing the nav from three links to five. Invisible locally because Windows' system-ui is narrower than a Linux runner's; found by CI on the first push. The row now wraps, and the test forces a wide font so the check no longer depends on the host. |
 | Wilcoxon tie correction is wrong by 6× | **done** | Corrected to /12 and pinned by a test that brute-forces the exact null distribution rather than trusting a remembered formula. |
 | Cancelling a run leaves a promise that never settles | **done** | In-flight rejecters are tracked and fired before the workers are terminated; `CancelledError` distinguishes it from a failure. |

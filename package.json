@@ -21,6 +21,8 @@
     "bench:rounds": "node scripts/bench-rounds.mjs",
     "bench:collision": "node scripts/bench-collision.mjs",
     "db:setup": "node --env-file=.env.local scripts/db-setup.mjs",
+    "db:check": "node --env-file=.env.local scripts/db-check.mjs",
+    "db:purge-owner": "node --env-file=.env.local scripts/db-purge-owner.mjs",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "e2e": "playwright test",

@@ -207,22 +207,39 @@ Two details worth knowing:
 ## Deployment
 
 Vercel plus Neon. The database is **optional** — with no `DATABASE_URL` the API
-routes answer 501 and the client falls back to `localStorage`, which is how it
-runs locally.
+routes answer 501 and the client falls back to `localStorage` and IndexedDB,
+which is how it runs locally.
 
 ```bash
-cp .env.example .env.local     # add DATABASE_URL to enable persistence
+cp .env.example .env.local     # or let the Neon integration populate it
 npm run db:setup               # create the tables (idempotent)
+npm run db:check               # verify the live columns match what the code reads
 ```
 
-Saved functions and runs are scoped by an anonymous browser id, not an account.
-Swapping that for real auth later is a column rename, not a schema rewrite.
+`db:check` exists because `db:setup` reporting "ok" only means the DDL ran. It
+compares the live columns against the ones the application actually reads, and
+prints row counts and database size. `npm run db:purge-owner <uuid>` clears one
+anonymous identity; it refuses to run without an explicit id so it cannot become
+an accidental "empty the database".
 
-Runs are stored with their **full per-replication arrays** so a reloaded run can
-still be paired-tested; a 500-replication run is a few hundred KB of JSON.
+`vercel.json` pins functions to `iad1`, beside the Neon region — every API route
+makes a database round trip, so putting them on the other side of the country
+would dominate their latency. The vendored Pyodide wheels are served
+`immutable` (they are versioned by filename, and numpy alone is 11 MB), the
+engine `.py` files revalidate because they change with a deploy, and the
+owner-scoped API is `no-store` — a shared cache serving one browser's saved
+functions to another would be a data leak rather than a performance win.
 
 Nothing about the simulation touches the server: Pyodide runs in the browser, so
 Vercel only ever serves static assets and small JSON.
+
+### Bringing existing work into a new database
+
+There is no server-side migration script, and the absence is deliberate — see
+[ADR-015](ADR.md). The database starts empty and every saved function, setup and
+completed run lives in the browser that made it, so only that browser can upload
+them. Open the app with a database configured and a banner offers to; local
+copies are kept, and re-running it uploads nothing twice.
 
 ### A note on Windows network drives
 

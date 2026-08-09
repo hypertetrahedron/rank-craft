@@ -78,15 +78,55 @@ export async function deleteRun(id: string): Promise<void> {
 
 export type StoredConfig = { id: string; name: string; payload: SimConfig; updatedAt: number }
 
-export async function listConfigs(): Promise<StoredConfig[]> {
-  const res = await call<{ configs: StoredConfig[] }>('/api/configs')
-  return res?.configs ?? []
+const CONFIG_KEY = 'rankcraft-configs'
+
+function readLocalConfigs(): StoredConfig[] {
+  if (typeof window === 'undefined') return []
+  try {
+    return JSON.parse(localStorage.getItem(CONFIG_KEY) || '[]') as StoredConfig[]
+  } catch {
+    return []
+  }
 }
 
+function writeLocalConfigs(configs: StoredConfig[]) {
+  localStorage.setItem(CONFIG_KEY, JSON.stringify(configs))
+}
+
+export async function listConfigs(): Promise<StoredConfig[]> {
+  const res = await call<{ configs: StoredConfig[] }>('/api/configs')
+  return (res?.configs ?? readLocalConfigs()).sort((a, b) => b.updatedAt - a.updatedAt)
+}
+
+/**
+ * Falls back to localStorage exactly as saved functions do. Without this, saving
+ * a setup with no database configured discarded it while appearing to succeed —
+ * the input cleared and the panel closed either way.
+ */
 export async function saveConfig(name: string, payload: SimConfig, id?: string) {
   const res = await call<{ config: StoredConfig }>('/api/configs', {
     method: 'POST',
     body: JSON.stringify({ name, payload, id }),
   })
-  return res?.config ?? null
+  if (res) return res.config
+
+  const record: StoredConfig = {
+    id: id ?? crypto.randomUUID(),
+    name,
+    payload,
+    updatedAt: Date.now(),
+  }
+  writeLocalConfigs([...readLocalConfigs().filter((c) => c.id !== record.id), record])
+  return record
+}
+
+export async function deleteConfig(id: string): Promise<void> {
+  const remote = await call<{ ok: true }>(`/api/configs/${id}`, { method: 'DELETE' })
+  if (remote) return
+  writeLocalConfigs(readLocalConfigs().filter((c) => c.id !== id))
+}
+
+/** Local-only records, for the migration to pick up. */
+export function localConfigs(): StoredConfig[] {
+  return readLocalConfigs()
 }
