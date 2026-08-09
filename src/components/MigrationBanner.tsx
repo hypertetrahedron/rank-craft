@@ -43,11 +43,14 @@ export function MigrationBanner() {
     if (state === 'idle' && !hasRemote) return null
   }
 
-  const parts = [
-    inventory.functions.length && `${inventory.functions.length} saved function${inventory.functions.length === 1 ? '' : 's'}`,
-    inventory.configs.length && `${inventory.configs.length} setup${inventory.configs.length === 1 ? '' : 's'}`,
-    inventory.runs.length && `${inventory.runs.length} completed run${inventory.runs.length === 1 ? '' : 's'}`,
-  ].filter(Boolean) as string[]
+  const count = (n: number, one: string, many = one + 's') => n && `${n} ${n === 1 ? one : many}`
+  const parts = inventory
+    ? ([
+        count(inventory.functions.length, 'saved function'),
+        count(inventory.configs.length, 'setup'),
+        count(inventory.runs.length, 'completed run'),
+      ].filter(Boolean) as string[])
+    : []
 
   const run = async () => {
     setState('running')
@@ -115,7 +118,7 @@ export function MigrationBanner() {
             </p>
           </div>
           <button className="btn btn-primary shrink-0" onClick={run}>
-            Upload {inventory.total}
+            Upload {inventory?.total ?? 0}
           </button>
         </div>
       )}
