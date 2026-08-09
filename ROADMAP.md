@@ -14,7 +14,7 @@ any features the work revealed.
 | **deferred** | Work is stopped and will not restart until the user changes the status. **Do not work on deferred items.** |
 | **rejected** | Considered and found inappropriate. Must record why. |
 
-Last updated: 2026-08-09 (second pass: every not-started item implemented except deployment)
+Last updated: 2026-08-09 (deployed to Vercel with a Neon database; every item now done except three deferred)
 
 ---
 
@@ -110,6 +110,10 @@ Found by review on 2026-08-09. None are marked `done` until fixed **and** covere
 
 | Defect | State | Notes |
 |---|---|---|
+| POST /api/configs 500'd on any id the database had not seen | **done** | The update matched nothing and the handler dereferenced the row it did not get — precisely the migration's case, since it always sends the browser's local id. Now upserts. |
+| POST /api/functions 500'd on an id owned by someone else | **done** | Fell through to an insert reusing that id and violated the primary key. Ids come from browsers, so two can hold the same one. Now only reuses an id that is free. |
+| Any request failure silently demoted the session to localStorage | **done** | A 500 set the availability flag false, so the rest of the session wrote locally while reporting success. Only a 501 or an unreachable server now falls back. |
+| The migration banner hid its own success message | **done** | A successful upload empties the inventory, and the render guard hid the component when nothing was left — so it worked and looked as though nothing had happened. |
 | Saving a setup silently discarded it with no database | **done** | `saveConfig` had no localStorage fallback, unlike saved functions: the input cleared and the panel closed either way, so it looked like it had worked. Found while auditing what there was to migrate. |
 | Header nav overflowed the viewport on a phone | **done** | Introduced by growing the nav from three links to five. Invisible locally because Windows' system-ui is narrower than a Linux runner's; found by CI on the first push. The row now wraps, and the test forces a wide font so the check no longer depends on the host. |
 | Wilcoxon tie correction is wrong by 6× | **done** | Corrected to /12 and pinned by a test that brute-forces the exact null distribution rather than trusting a remembered formula. |

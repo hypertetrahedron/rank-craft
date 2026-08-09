@@ -233,6 +233,13 @@ functions to another would be a data leak rather than a performance win.
 Nothing about the simulation touches the server: Pyodide runs in the browser, so
 Vercel only ever serves static assets and small JSON.
 
+The browser suite normally runs against a local dev server, which has no
+database and so writes nothing. `E2E_BASE_URL=https://… npm run e2e` points it
+at a real deployment instead — worth doing, because the Pyodide worker is
+bundled differently in production — but note that the two tests which run a
+simulation will save their results to whatever database that deployment uses.
+`npm run db:purge-owner <uuid>` clears them.
+
 ### Bringing existing work into a new database
 
 There is no server-side migration script, and the absence is deliberate — see
