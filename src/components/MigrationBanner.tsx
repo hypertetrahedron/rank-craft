@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { migrateLocal, scanLocal, type LocalInventory, type MigrationReport } from '@/lib/migrateLocal'
-import { remoteEnabled } from '@/lib/runStore'
+import { probeRemote } from '@/lib/runStore'
 
 /**
  * Offers to move work made before the database existed into it.
@@ -16,14 +16,18 @@ export function MigrationBanner() {
   const [state, setState] = useState<'idle' | 'running' | 'done'>('idle')
   const [progress, setProgress] = useState({ done: 0, total: 0, what: '' })
   const [report, setReport] = useState<MigrationReport | null>(null)
+  const [hasRemote, setHasRemote] = useState(false)
 
   useEffect(() => {
     let cancelled = false
-    // `remoteEnabled()` only answers truthfully after a request has been made,
-    // so probe the local side first and let the fetch inside `scanLocal` settle
-    // the question.
-    scanLocal().then((inv) => {
-      if (!cancelled && inv.total > 0) setInventory(inv)
+    // Both questions have to be asked, and neither answers the other:
+    // `scanLocal` never touches the network, so it cannot settle whether a
+    // database exists, and a database is no reason to show anything if there is
+    // nothing here to move.
+    Promise.all([scanLocal(), probeRemote()]).then(([inv, remote]) => {
+      if (cancelled) return
+      if (inv.total > 0) setInventory(inv)
+      setHasRemote(remote)
     })
     return () => {
       cancelled = true
@@ -31,7 +35,7 @@ export function MigrationBanner() {
   }, [])
 
   if (!inventory || inventory.total === 0) return null
-  if (state === 'idle' && !remoteEnabled()) return null
+  if (state === 'idle' && !hasRemote) return null
 
   const parts = [
     inventory.functions.length && `${inventory.functions.length} saved function${inventory.functions.length === 1 ? '' : 's'}`,

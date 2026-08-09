@@ -44,8 +44,27 @@ async function call<T>(path: string, init?: RequestInit): Promise<T | null> {
   }
 }
 
-/** True once a request has confirmed the API is reachable and backed by a DB. */
+/**
+ * True once a request has confirmed the API is reachable and backed by a
+ * database. Synchronous, so it reports `false` before anything has asked —
+ * call `probeRemote()` first if the answer needs to be trustworthy rather than
+ * merely current.
+ */
 export function remoteEnabled(): boolean {
+  return available === true
+}
+
+/**
+ * Ask the server whether a database is configured, and cache the answer.
+ *
+ * `remoteEnabled()` alone is a trap for any component that has not already made
+ * a request: it returns `false` for "not asked yet" and for "asked, there is no
+ * database", which are very different things. The migration banner hid itself
+ * for exactly that reason.
+ */
+export async function probeRemote(): Promise<boolean> {
+  if (available !== null) return available
+  await call('/api/configs')
   return available === true
 }
 

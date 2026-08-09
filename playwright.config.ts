@@ -5,6 +5,12 @@ import { defineConfig, devices } from '@playwright/test'
  * tests exercise the Pyodide worker, which webpack bundles differently in dev
  * and production, and a stale server would silently test the wrong build.
  */
+// Point the suite at an already-running deployment instead of a local dev
+// server: `E2E_BASE_URL=https://... npm run e2e`. Worth having because the
+// Pyodide worker is bundled differently in production, so a dev-server pass
+// does not prove the deployed build works.
+const external = process.env.E2E_BASE_URL
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false, // the Pyodide pool saturates the CPU on its own
@@ -13,15 +19,17 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : 'list',
   timeout: 120_000,
   use: {
-    baseURL: 'http://localhost:3210',
+    baseURL: external ?? 'http://localhost:3210',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  webServer: {
-    command: 'npm run dev:debug',
-    url: 'http://localhost:3210',
-    reuseExistingServer: false,
-    timeout: 180_000,
-  },
+  webServer: external
+    ? undefined
+    : {
+        command: 'npm run dev:debug',
+        url: 'http://localhost:3210',
+        reuseExistingServer: false,
+        timeout: 180_000,
+      },
 })
