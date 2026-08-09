@@ -98,8 +98,8 @@ Last updated: 2026-08-09 (second pass: every not-started item implemented except
 | `vercel.json` and deployment | **not started** | Never created. The app builds and would deploy on defaults, but this is untested. |
 | Vendoring the Pyodide runtime into `public/` | **deferred** | Currently CDN, overridable via `NEXT_PUBLIC_PYODIDE_URL`. Only worth doing if CDN availability becomes a problem. |
 | COOP/COEP headers + SharedArrayBuffer | **deferred** | Would allow true mid-run interruption instead of terminating and respawning workers. Not worth the header constraints yet. |
-| Automated browser tests in the repo | **done** | `e2e/smoke.spec.ts`, 16 checks including a real simulation and the reload-persistence regression. |
-| CI | **done** | `.github/workflows/ci.yml` — three jobs: types/lint/unit/build, the Python engine suite, and the browser suite. Untested in a live runner because this is not yet a git repository. |
+| Automated browser tests in the repo | **done** | `e2e/smoke.spec.ts`, 16 checks including a real simulation, the reload-persistence regression, and a phone-width check that forces a wide font so it does not depend on the host's system-ui. |
+| CI | **done** | `.github/workflows/ci.yml` — three jobs: types/lint/unit/build, the Python engine suite, and the browser suite. Verified green on a real runner, and it earned its keep immediately by catching a responsive bug Windows fonts were hiding. |
 
 ## Known defects
 
@@ -107,6 +107,7 @@ Found by review on 2026-08-09. None are marked `done` until fixed **and** covere
 
 | Defect | State | Notes |
 |---|---|---|
+| Header nav overflowed the viewport on a phone | **done** | Introduced by growing the nav from three links to five. Invisible locally because Windows' system-ui is narrower than a Linux runner's; found by CI on the first push. The row now wraps, and the test forces a wide font so the check no longer depends on the host. |
 | Wilcoxon tie correction is wrong by 6× | **done** | Corrected to /12 and pinned by a test that brute-forces the exact null distribution rather than trusting a remembered formula. |
 | Cancelling a run leaves a promise that never settles | **done** | In-flight rejecters are tracked and fired before the workers are terminated; `CancelledError` distinguishes it from a failure. |
 | `usePool` has a single status subscriber | **done** | Replaced with a subscriber set. |

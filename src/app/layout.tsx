@@ -12,12 +12,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen antialiased">
+        {/* Wraps rather than holding a single row: the nav grew from three
+            links to five, and on a narrow screen with a wide system font the
+            row overflowed the viewport. Caught by CI on Linux, invisible on a
+            machine whose system-ui happens to be narrower. */}
         <header className="border-b border-border">
-          <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
+          <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-1 px-4 py-3">
             <Link href="/" className="font-semibold tracking-tight">
               Rank<span className="text-accent">Craft</span>
             </Link>
-            <nav className="flex gap-4 text-sm text-ink-muted">
+            <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-muted">
               <Link href="/" className="hover:text-ink">
                 Simulate
               </Link>

@@ -10,7 +10,7 @@ export default defineConfig({
   fullyParallel: false, // the Pyodide pool saturates the CPU on its own
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['github'], ['list']] : 'list',
+  reporter: process.env.CI ? [['github'], ['list'], ['html', { open: 'never' }]] : 'list',
   timeout: 120_000,
   use: {
     baseURL: 'http://localhost:3210',

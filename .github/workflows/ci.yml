@@ -53,9 +53,13 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e
+      # test-results holds the screenshots and traces; playwright-report is the
+      # browsable HTML. Uploading only the latter left a failure undiagnosable.
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: playwright-failure
+          path: |
+            playwright-report/
+            test-results/
           retention-days: 7

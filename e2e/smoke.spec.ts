@@ -184,14 +184,24 @@ test.describe('presentation', () => {
     }
   })
 
-  test('is usable at a phone width', async ({ page }) => {
+  test('is usable at a phone width, whatever the system font', async ({ page }) => {
+    // The failure this guards against was invisible on a machine whose
+    // system-ui is narrow and real on a Linux runner whose is not, so the
+    // widest branch is forced rather than left to the host's fonts.
     await page.setViewportSize({ width: 390, height: 800 })
-    await page.goto('/')
-    await expect(page.getByRole('heading', { name: 'The field' })).toBeVisible()
-    const overflows = await page.evaluate(
-      () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1
-    )
-    expect(overflows).toBe(false)
+    for (const route of ['/', '/sweep', '/compare', '/library', '/fit']) {
+      await page.goto(route)
+      await page.addStyleTag({ content: '*{font-family:"DejaVu Sans",monospace !important}' })
+      await page.waitForTimeout(200)
+      const offenders = await page.evaluate(() => {
+        const docW = document.documentElement.clientWidth
+        return [...document.querySelectorAll('*')]
+          .filter((el) => el.getBoundingClientRect().right > docW + 1)
+          .map((el) => `<${el.tagName.toLowerCase()} class="${el.className}">`)
+          .slice(0, 3)
+      })
+      expect(offenders, `${route} scrolls sideways at 390px`).toEqual([])
+    }
   })
 
   test('keyboard focus is visible', async ({ page }) => {
