@@ -24,24 +24,39 @@ export type StoredRun = StoredRunSummary & { result: BatchResult }
 
 let available: boolean | null = null
 
+/**
+ * One request to the API.
+ *
+ * Returns `null` only when there is genuinely nowhere to send it — the server
+ * says no database is configured (501), or the request could not be made at
+ * all. Anything else *throws*, which matters more than it looks: treating a 500
+ * as "no database" silently demoted the whole session to localStorage and made
+ * the migration report success for records that never arrived.
+ */
 async function call<T>(path: string, init?: RequestInit): Promise<T | null> {
   if (available === false) return null
+
+  let res: Response
   try {
-    const res = await fetch(path, {
+    res = await fetch(path, {
       ...init,
       headers: { 'content-type': 'application/json', 'x-owner-id': ownerId(), ...init?.headers },
     })
-    if (res.status === 501 || res.status === 404) {
-      if (res.status === 501) available = false
-      return null
-    }
-    if (!res.ok) throw new Error(await res.text())
-    available = true
-    return (await res.json()) as T
   } catch {
+    // Could not reach the server at all — offline, or no server. Fall back.
     available = false
     return null
   }
+
+  if (res.status === 501) {
+    available = false
+    return null
+  }
+  // The server is there, so remote *is* available even if this request failed.
+  available = true
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => res.statusText)}`)
+  return (await res.json()) as T
 }
 
 /**

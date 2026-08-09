@@ -49,9 +49,21 @@ export async function POST(req: Request) {
     updatedAt: new Date(),
   }
 
-  const [row] = body.id
-    ? await conn.update(configs).set(values).where(eq(configs.id, body.id)).returning()
-    : await conn.insert(configs).values(values).returning()
+  // A supplied id is a request to overwrite *if it exists*. The migration
+  // always sends the browser's local id for a row the database has never seen,
+  // so an update-only path matched nothing, returned no row, and threw on
+  // `row.id` — a 500 on the one code path the migration depends on.
+  let row
+  if (body.id) {
+    ;[row] = await conn
+      .insert(configs)
+      .values({ ...values, id: body.id })
+      .onConflictDoUpdate({ target: configs.id, set: values })
+      .returning()
+  } else {
+    ;[row] = await conn.insert(configs).values(values).returning()
+  }
+  if (!row) return Response.json({ error: 'could not save the config' }, { status: 500 })
 
   return Response.json({
     config: { id: row.id, name: row.name, payload: row.payload, updatedAt: row.updatedAt.getTime() },

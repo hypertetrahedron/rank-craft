@@ -40,24 +40,37 @@ export function ownerId(): string {
 
 let remoteAvailable: boolean | null = null
 
+/**
+ * One request to the API.
+ *
+ * Returns `null` only when there is genuinely nowhere to send it — the server
+ * says no database is configured (501), or the request could not be made at
+ * all. Anything else *throws*, which matters more than it looks: treating a 500
+ * as "no database" silently demoted the whole session to localStorage and made
+ * the migration report success for records that never arrived.
+ */
 async function tryRemote<T>(path: string, init?: RequestInit): Promise<T | null> {
   if (remoteAvailable === false) return null
+
+  let res: Response
   try {
-    const res = await fetch(path, {
+    res = await fetch(path, {
       ...init,
       headers: { 'content-type': 'application/json', 'x-owner-id': ownerId(), ...init?.headers },
     })
-    if (res.status === 501) {
-      remoteAvailable = false
-      return null
-    }
-    if (!res.ok) throw new Error(await res.text())
-    remoteAvailable = true
-    return (await res.json()) as T
   } catch {
     remoteAvailable = false
     return null
   }
+
+  if (res.status === 501) {
+    remoteAvailable = false
+    return null
+  }
+  remoteAvailable = true
+  if (res.status === 404) return null
+  if (!res.ok) throw new Error(`${res.status} ${await res.text().catch(() => res.statusText)}`)
+  return (await res.json()) as T
 }
 
 function readLocal(): SavedFunction[] {

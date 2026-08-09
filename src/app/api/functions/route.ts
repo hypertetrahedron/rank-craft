@@ -86,11 +86,17 @@ export async function POST(req: Request) {
       .where(eq(functions.id, body.id))
       .returning()
   } else {
+    // Only reuse the supplied id when it is genuinely free. Ids come from
+    // browsers, so two of them can arrive holding the same one — through a
+    // shared link, or a copied profile — and reusing it here violated the
+    // primary key and returned a 500 instead of simply storing the function.
+    const idIsFree = body.id && existing.length === 0
     ;[row] = await conn
       .insert(functions)
-      .values(body.id ? { ...values, id: body.id } : values)
+      .values(idIsFree ? { ...values, id: body.id } : values)
       .returning()
   }
+  if (!row) return Response.json({ error: 'could not save the function' }, { status: 500 })
 
   return Response.json({
     function: {
