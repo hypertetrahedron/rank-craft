@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // preLaunchTask for "RankCraft: browser". Exits 0 once the dev server is
+      // serving RankCraft, which is what keeps the browser from opening on a
+      // connection-refused page. Must be a normal (non-background) task so the
+      // debugger waits for it to finish.
+      "label": "wait for dev server",
+      "type": "process",
+      "command": "node",
+      "args": ["scripts/wait-for-server.mjs", "http://localhost:3210", "180000"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": {
+        "reveal": "silent",
+        "revealProblems": "onProblem",
+        "panel": "dedicated",
+        "close": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "engine tests",
+      "detail": "Boot Pyodide under Node and exercise the simulation engine (~2 min).",
+      "type": "npm",
+      "script": "py:test",
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "typecheck",
+      "type": "npm",
+      "script": "typecheck",
+      "group": "build",
+      "problemMatcher": ["$tsc"]
+    }
+  ]
+}

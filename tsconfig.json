@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "esnext", "webworker"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    // Type-only imports must say so. Node strips types without a type checker,
+    // so an unmarked type import becomes a real runtime import of a name that
+    // does not exist — which is what broke `npm test` before this was enabled.
+    "verbatimModuleSyntax": true,
+    // Test files import with explicit .ts extensions so `node --test` can load
+    // them; the resolver hook covers the extensionless imports in src.
+    "allowImportingTsExtensions": true,
+    // Node runs these sources by stripping types, never compiling them, so any
+    // TypeScript that needs codegen — enums, namespaces, parameter properties —
+    // is a runtime error rather than a type error. Fail at build time instead.
+    "erasableSyntaxOnly": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

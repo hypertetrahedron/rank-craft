@@ -1,0 +1,63 @@
+{
+  // The target to use is "Debug RankCraft" (the compound at the bottom). It
+  // starts the dev server, waits for it to actually serve, opens a debug
+  // browser, and — because the compound sets "stopAll" — closing that browser
+  // tears the server down with it.
+  //
+  // The two configurations above it exist so the compound can reference them;
+  // you can also run either alone.
+  //
+  // PORT 3210, not 3000. Port 3000 is commonly taken by another dev server on
+  // this machine, and Next silently moves to the next free port when it is —
+  // which would leave the debugger attached to somebody else's app. The port
+  // appears in three places that must agree: the "dev:debug" npm script, the
+  // browser url below, and the wait-for-dev-server task in tasks.json.
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // "node-terminal" rather than "node": Next runs the compiler and the
+      // server in child processes, and this type auto-attaches to whatever the
+      // command spawns. That is what makes breakpoints bind in API routes
+      // under src/app/api and in server components.
+      "name": "RankCraft: dev server",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npm run dev:debug",
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    },
+    {
+      "name": "RankCraft: browser",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:3210",
+      "webRoot": "${workspaceFolder}",
+      // Waits for the server to answer before opening, so the browser never
+      // lands on a connection-refused page while Next is compiling.
+      "preLaunchTask": "wait for dev server",
+      // A persistent profile, not a throwaway one. Saved functions live in
+      // localStorage and completed runs live in IndexedDB when no DATABASE_URL
+      // is set — a fresh profile per session would wipe them every time you
+      // hit F5. Delete .vscode/.chrome-profile to start clean.
+      "userDataDir": "${workspaceFolder}/.vscode/.chrome-profile",
+      // No "sourceMapPathOverrides" on purpose. Next's dev bundles name their
+      // sources "webpack://_N_E/./src/components/...", which the debugger's
+      // built-in "webpack://?:*/*" rule already resolves against webRoot — and
+      // supplying your own overrides *replaces* the built-in set rather than
+      // extending it, so hand-writing them here would lose the node_modules and
+      // drive-letter rules and bind fewer breakpoints, not more.
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug RankCraft",
+      "configurations": ["RankCraft: dev server", "RankCraft: browser"],
+      // The point of the whole file: when either session ends — normally by
+      // closing the browser window — VS Code stops the other one too, so no
+      // orphaned dev server is left holding port 3000 and the .next directory.
+      "stopAll": true,
+      "presentation": { "group": "1_run", "order": 1 }
+    }
+  ]
+}

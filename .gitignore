@@ -1,0 +1,26 @@
+node_modules
+.next
+out
+build
+.DS_Store
+*.pem
+npm-debug.log*
+.env
+.env*.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
+drizzle/meta
+
+# Persistent Chrome profile for the debug launch target
+.vscode/.chrome-profile
+
+# Benchmark output — regenerate with npm run bench (bench-64.json is ~7 MB)
+bench-*.json
+bench-*.log
+
+# Playwright
+/test-results
+/playwright-report
+/blob-report
+/.playwright

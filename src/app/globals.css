@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --surface: 250 250 249;
+  --surface-2: 255 255 255;
+  --border: 231 229 228;
+  --ink: 28 25 23;
+  --ink-muted: 120 113 108;
+  --accent: 13 148 136;
+  --accent-ink: 255 255 255;
+  --ok: 22 163 74;
+  --warn: 217 119 6;
+  --bad: 220 38 38;
+
+  /* Chart palette. Validated in both modes against the card surface:
+     adjacent CVD ΔE 9.1 light / 8.4 dark, normal-vision 19.6 / 19.3.
+     Light-mode aqua, yellow and magenta fall below 3:1 on white, so every
+     chart that uses them ships direct labels and a table view. */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --muted-ink: #898781;
+  --band: rgba(42, 120, 214, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --surface: 12 10 9;
+    --surface-2: 28 25 23;
+    --border: 68 64 60;
+    --ink: 250 250 249;
+    --ink-muted: 168 162 158;
+    --accent: 45 212 191;
+    --accent-ink: 12 10 9;
+    --ok: 74 222 128;
+    --warn: 251 191 36;
+    --bad: 248 113 113;
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --muted-ink: #898781;
+    --band: rgba(57, 135, 229, 0.18);
+  }
+}
+
+:root[data-theme='dark'] {
+  --surface: 12 10 9;
+  --surface-2: 28 25 23;
+  --border: 68 64 60;
+  --ink: 250 250 249;
+  --ink-muted: 168 162 158;
+  --accent: 45 212 191;
+  --accent-ink: 12 10 9;
+  --ok: 74 222 128;
+  --warn: 251 191 36;
+  --bad: 248 113 113;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --muted-ink: #898781;
+  --band: rgba(57, 135, 229, 0.18);
+}
+
+body {
+  @apply bg-surface text-ink;
+  font-feature-settings: 'tnum' 1;
+}
+
+/* One visible focus treatment for everything reachable by keyboard. Without
+   this only inputs showed focus, so the wizard could not be navigated by
+   keyboard with any idea of where you were. */
+:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* Never suppress the ring on an element that has no other focus affordance. */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-lg border border-border bg-surface-2;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-border px-3 py-1.5
+           text-sm font-medium transition-colors hover:bg-surface disabled:cursor-not-allowed
+           disabled:opacity-40;
+  }
+
+  .btn-primary {
+    @apply border-transparent bg-accent text-accent-ink hover:opacity-90;
+  }
+
+  .input {
+    @apply w-full rounded-md border border-border bg-surface px-2.5 py-1.5 text-sm
+           outline-none focus:border-accent;
+  }
+
+  .label {
+    @apply block text-xs font-medium uppercase tracking-wide text-ink-muted;
+  }
+
+  .num {
+    @apply font-mono tabular-nums;
+  }
+}

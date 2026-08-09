@@ -1,0 +1,60 @@
+{
+  "name": "rank-craft",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18.17"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "dev:debug": "next dev -p 3210",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import ./scripts/test-setup.mjs --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test \"src/**/*.test.ts\"",
+    "test:watch": "node --import ./scripts/test-setup.mjs --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test --watch \"src/**/*.test.ts\"",
+    "py:test": "node scripts/py-selftest.mjs",
+    "bench": "node scripts/bench.mjs",
+    "bench:rounds": "node scripts/bench-rounds.mjs",
+    "bench:collision": "node scripts/bench-collision.mjs",
+    "db:setup": "node --env-file=.env.local scripts/db-setup.mjs",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui",
+    "verify": "npm run typecheck && npm run lint && npm test && npm run py:test"
+  },
+  "dependencies": {
+    "next": "^14.2.33",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.5",
+    "zod": "^3.23.8",
+    "recharts": "^2.13.3",
+    "codemirror": "^6.0.1",
+    "@codemirror/state": "^6.4.1",
+    "@codemirror/view": "^6.34.1",
+    "@codemirror/commands": "^6.7.1",
+    "@codemirror/lang-python": "^6.1.6",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "drizzle-orm": "^0.36.4",
+    "@neondatabase/serverless": "^0.10.4"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "tailwindcss": "^3.4.17",
+    "postcss": "^8",
+    "autoprefixer": "^10",
+    "eslint": "^8",
+    "eslint-config-next": "^14.2.30",
+    "drizzle-kit": "^0.28.1",
+    "pyodide": "^0.26.4",
+    "@playwright/test": "^1.62.1"
+  }
+}

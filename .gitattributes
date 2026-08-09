@@ -1,0 +1,10 @@
+# Normalise line endings in the repository regardless of the platform a
+# contributor is on. CI runs on Linux and the Python engine is read verbatim by
+# Pyodide, so committing CRLF would be a real problem rather than a cosmetic one.
+* text=auto eol=lf
+
+# Vendored wheels are archives — never touch them.
+*.whl binary
+
+# Generated; keep it out of diffs and reviews.
+package-lock.json linguist-generated=true -diff
