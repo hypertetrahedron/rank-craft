@@ -45,8 +45,19 @@ export function MigrationBanner() {
 
   const run = async () => {
     setState('running')
-    const result = await migrateLocal((done, total, what) => setProgress({ done, total, what }))
-    setReport(result)
+    try {
+      const result = await migrateLocal((done, total, what) => setProgress({ done, total, what }))
+      setReport(result)
+    } catch (err) {
+      // Without this the banner sat on "Uploading…" for ever with nothing to
+      // read: an upload that cannot even start is the case most in need of an
+      // explanation, not the one least deserving of one.
+      setReport({
+        uploaded: 0,
+        skipped: 0,
+        failed: [{ what: 'the upload could not start', why: (err as Error).message }],
+      })
+    }
     setState('done')
     setInventory(await scanLocal())
   }

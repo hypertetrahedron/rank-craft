@@ -139,7 +139,9 @@ export async function migrateLocal(
   onProgress?: (done: number, total: number, what: string) => void
 ): Promise<MigrationReport> {
   const local = await readLocal()
-  const remoteRuns = await listRuns()
+  // Not knowing what the database already holds is a reason to send runs
+  // cautiously, not a reason to abandon the whole migration.
+  const remoteRuns = await listRuns().catch(() => [])
   const plan = planMigration(
     local,
     migratedIds(),
