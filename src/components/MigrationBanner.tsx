@@ -34,8 +34,14 @@ export function MigrationBanner() {
     }
   }, [])
 
-  if (!inventory || inventory.total === 0) return null
-  if (state === 'idle' && !hasRemote) return null
+  // Once a report exists it stays on screen. A successful migration empties the
+  // inventory, so guarding on "is there anything left to send" hid the very
+  // message confirming it had been sent — the upload worked and looked as
+  // though nothing had happened.
+  if (state !== 'done') {
+    if (!inventory || inventory.total === 0) return null
+    if (state === 'idle' && !hasRemote) return null
+  }
 
   const parts = [
     inventory.functions.length && `${inventory.functions.length} saved function${inventory.functions.length === 1 ? '' : 's'}`,
