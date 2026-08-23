@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { describe, it } from 'node:test'
 import { mergeSlices, partition, requiredWheels } from './pool.ts'
-import { FAIRNESS_METRICS, FINAL_METRICS, ROUND_METRICS } from './protocol.ts'
+import { FAIRNESS_METRICS, FINAL_METRICS, ROUND_METRICS, WHEELS } from './protocol.ts'
 import type { BatchResult } from './protocol.ts'
+import { splitBuiltins } from '../builtins.ts'
 import { simConfigSchema, type SimConfig } from '../simConfig.ts'
 
 const config = (code: Partial<Record<string, string>> = {}): SimConfig =>
@@ -127,6 +130,28 @@ describe('requiredWheels', () => {
     assert.match(wheels[0], /networkx/)
   })
 
+  it('detects numpy through the helpers that import it', () => {
+    // ridge_margin is exactly this case: it calls ridge_ratings and never
+    // writes `numpy`, so scanning for the module name alone left the wheel
+    // unloaded and the run died on ModuleNotFoundError inside the harness.
+    for (const helper of ['ridge_ratings', 'posterior_spread']) {
+      const wheels = requiredWheels(config({ ranking: 'def rank_players(t, ctx):\n  return ' + helper + '(t)' }))
+      assert.equal(wheels.length, 1, helper)
+      assert.match(wheels[0], /numpy/)
+    }
+  })
+
+  it('loads numpy for the shipped built-ins that reach it through a helper', () => {
+    const source = readFileSync(path.join(process.cwd(), 'public', 'py', 'builtins', 'ranking.py'), 'utf8')
+    for (const b of splitBuiltins('ranking', source)) {
+      if (!b.code.includes('ridge_ratings')) continue
+      assert.ok(
+        requiredWheels(config({ ranking: b.code })).some((u) => u.includes('numpy')),
+        b.name + ' needs numpy but no wheel would be loaded'
+      )
+    }
+  })
+
   it('loads both when both are needed, across different hooks', () => {
     assert.equal(
       requiredWheels(
@@ -137,5 +162,30 @@ describe('requiredWheels', () => {
       ).length,
       2
     )
+  })
+
+  it('lists every injected harness helper that imports a wheel', () => {
+    // The guard against this drifting again: a new helper in harness.py that
+    // imports numpy is invisible to requiredWheels until it is named in
+    // WHEELS[].helpers, and the failure only shows up at run time.
+    const harness = readFileSync(path.join(process.cwd(), 'public', 'py', 'harness.py'), 'utf8')
+    const bodies: Record<string, string[]> = {}
+    let current = ''
+    for (const line of harness.split('\n')) {
+      if (line.startsWith('def ')) current = line.slice(4, line.indexOf('('))
+      else if (line.trim() !== '' && !line.startsWith(' ')) current = ''
+      if (current) (bodies[current] ??= []).push(line.trim())
+    }
+    for (const w of WHEELS) {
+      for (const [name, body] of Object.entries(bodies)) {
+        // Only what load_hook injects is reachable from user code.
+        if (!harness.includes("'" + name + "': " + name + ",")) continue
+        if (!body.some((l) => l.startsWith('import ' + w.module))) continue
+        assert.ok(
+          w.helpers.includes(name),
+          'harness.' + name + ' imports ' + w.module + ' - add it to WHEELS[].helpers in protocol.ts'
+        )
+      }
+    }
   })
 })

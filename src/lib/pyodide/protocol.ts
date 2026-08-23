@@ -8,13 +8,25 @@ export const PYODIDE_URL =
  * Wheels served from public/ and installed by URL, which skips Pyodide's
  * dependency resolution. Only fetched when the selected functions actually
  * import them — together they are 15 MB, and most configurations need neither.
+ *
+ * `helpers` lists the harness functions injected by `load_hook` that import the
+ * module on the user's behalf. User code calls `ridge_ratings(t)` and never
+ * writes `numpy`, so scanning for the module name alone misses it and the run
+ * dies on `ModuleNotFoundError` inside the harness. A new injected helper that
+ * imports a package must be added here.
  */
-export const WHEELS: { module: string; url: string; mb: number }[] = [
-  { module: 'networkx', url: '/py/wheels/networkx-3.3-py3-none-any.whl', mb: 3.6 },
+export const WHEELS: { module: string; url: string; mb: number; helpers: string[] }[] = [
+  {
+    module: 'networkx',
+    url: '/py/wheels/networkx-3.3-py3-none-any.whl',
+    mb: 3.6,
+    helpers: ['max_weight_pairing'],
+  },
   {
     module: 'numpy',
     url: '/py/wheels/numpy-1.26.4-cp312-cp312-pyodide_2024_0_wasm32.whl',
     mb: 11.4,
+    helpers: ['ridge_ratings', 'posterior_spread'],
   },
 ]
 

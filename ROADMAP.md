@@ -14,7 +14,7 @@ any features the work revealed.
 | **deferred** | Work is stopped and will not restart until the user changes the status. **Do not work on deferred items.** |
 | **rejected** | Considered and found inappropriate. Must record why. |
 
-Last updated: 2026-08-09 (deployed to Vercel with a Neon database; every item now done except three deferred)
+Last updated: 2026-08-22 (fixed the wheel-detection defect that broke every ridge ranking in the browser)
 
 ---
 
@@ -60,7 +60,7 @@ Last updated: 2026-08-09 (deployed to Vercel with a Neon database; every item no
 | Smoke test before a batch | **done** | 8-player, 3-round run surfaces contract errors in a second. |
 | Ground-truth-leak warnings | **done** | Flags `.skill` in pairing/ranking code and the perfect-seeding trap. |
 | Worker pool with progress and cancellation | **done** | Contiguous slices; pool size never changes results. |
-| Per-config wheel loading | **done** | numpy (11 MB) only loads when the selected code needs it. |
+| Per-config wheel loading | **done** | numpy (11 MB) only loads when the selected code needs it. Detection covers both a direct import and the injected harness helpers that import on the user's behalf. |
 | Results: metric cards, convergence, scatter, histogram, diagnostics, inspector | **done** | |
 | CSV / JSON export | **done** | Per-replication rows, not summaries. |
 | Compare view with paired tests | **done** | Paired t-test and Wilcoxon under common random numbers. |
@@ -121,6 +121,7 @@ Found by review on 2026-08-09. None are marked `done` until fixed **and** covere
 | `usePool` has a single status subscriber | **done** | Replaced with a subscriber set. |
 | Fairness metrics report meaningless zeros in score-based games | **done** | Colour and rating-gap metrics return null when the configuration cannot give them meaning. |
 | No test coverage on the TypeScript layer | **done** | 108 assertions over stats, pool, builtins parsing, sweep expansion, config links and the outcome fit. |
+| Every `ridge_*` ranking failed with `ModuleNotFoundError: numpy` | **done** | `requiredWheels` scanned the selected code for the module name and special-cased only `max_weight_pairing`, so a function reaching numpy through `ridge_ratings` or `posterior_spread` loaded no wheel. The implied dependency is now a `helpers` field on each `WHEELS` entry. Invisible to `py:test`, which loads every wheel unconditionally — covered instead by three unit tests, one of which reads `harness.py` and fails if a new injected helper imports a package that is not declared. |
 
 ## Code quality
 

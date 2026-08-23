@@ -28,8 +28,9 @@ export function requiredWheels(cfg: SimConfig): string[] {
   return WHEELS.filter(
     (w) =>
       code.includes(w.module) ||
-      // max_weight_pairing is the harness helper that imports networkx for you
-      (w.module === 'networkx' && code.includes('max_weight_pairing'))
+      // The injected harness helpers import the package for you, so the module
+      // name never appears in the code that needs it.
+      w.helpers.some((h) => code.includes(h))
   ).map((w) => w.url)
 }
 
