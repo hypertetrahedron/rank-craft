@@ -30,33 +30,34 @@
     "verify": "npm run typecheck && npm run lint && npm test && npm run py:test"
   },
   "dependencies": {
+    "@codemirror/commands": "^6.7.1",
+    "@codemirror/lang-python": "^6.1.6",
+    "@codemirror/state": "^6.4.1",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "@codemirror/view": "^6.34.1",
+    "@neondatabase/serverless": "^0.10.4",
+    "@vercel/analytics": "^2.0.1",
+    "codemirror": "^6.0.1",
+    "drizzle-orm": "^0.36.4",
     "next": "^14.2.33",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "zustand": "^4.5.5",
-    "zod": "^3.23.8",
     "recharts": "^2.13.3",
-    "codemirror": "^6.0.1",
-    "@codemirror/state": "^6.4.1",
-    "@codemirror/view": "^6.34.1",
-    "@codemirror/commands": "^6.7.1",
-    "@codemirror/lang-python": "^6.1.6",
-    "@codemirror/theme-one-dark": "^6.1.2",
-    "drizzle-orm": "^0.36.4",
-    "@neondatabase/serverless": "^0.10.4"
+    "zod": "^3.23.8",
+    "zustand": "^4.5.5"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "tailwindcss": "^3.4.17",
-    "postcss": "^8",
     "autoprefixer": "^10",
+    "drizzle-kit": "^0.28.1",
     "eslint": "^8",
     "eslint-config-next": "^14.2.30",
-    "drizzle-kit": "^0.28.1",
+    "postcss": "^8",
     "pyodide": "^0.26.4",
-    "@playwright/test": "^1.62.1"
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5"
   }
 }
